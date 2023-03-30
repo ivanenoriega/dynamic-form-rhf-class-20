@@ -1,3 +1,5 @@
+import RecipesForm from '@/components/RecipesForm'
+import { Container } from '@mui/material'
 import Head from 'next/head'
 
 export default function Home() {
@@ -9,9 +11,9 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <h1>
-        Home
-      </h1>
+      <Container sx={{ marginTop: 5 }}>
+        <RecipesForm />
+      </Container>
     </>
   )
 }
