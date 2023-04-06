@@ -1,13 +1,56 @@
 import RecipesForm from '@/components/RecipesForm'
 import RecipesFormContextProvider from '@/components/RecipesForm/RecipesForm.context'
-import { Container, Step, StepLabel, Stepper } from '@mui/material'
+import { Container, Step, StepLabel, Stepper, TextField } from '@mui/material'
 import Head from 'next/head'
 import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { yupResolver } from '@hookform/resolvers/yup';
+import Cards from 'react-credit-cards';
+import * as yup from "yup";
+import 'react-credit-cards/es/styles-compiled.css';
 
-const steps = ['Ingredients', 'Instructions', 'Review'];
+const schema = yup.object({
+  nombre: yup.string().required(),
+  direccion: yup.string().required().min(5),
+  tarjeta: yup.string().required().min(16),
+  cvc: yup.string().required(),
+  expiry: yup.string().required(),
+  name: yup.string().required(),
+  number: yup.string().required(),
+}).required();
+
+const steps = ['Datos Personales', 'Dirección de entrega', 'Datos del pago'];
 
 export default function Home() {
   const [activeStep, setActiveStep] = useState(0);
+  const { register, formState: { errors }, watch, trigger, handleSubmit, getValues } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  const checkFirstStep = async () => {
+    const nameIsValid = await trigger("nombre")
+    if (nameIsValid) {
+      setActiveStep(1)
+    }
+  }
+
+  const checkSecondStep = async () => {
+    const nameIsValid = await trigger("nombre")
+    if (nameIsValid) {
+      setActiveStep(2)
+    }
+  }
+
+  const goBacktoStepOne = async () => {
+    setActiveStep(0)
+  }
+
+  const onValidSubmit = (data: any) => {
+    console.log('onValidSubmit - data:', data)
+  }
+
+  console.log('watch:', watch())
+  const tarjetaState = getValues('tarjeta');
 
   return (
     <>
@@ -18,16 +61,54 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Container sx={{ marginTop: 5 }}>
-        <RecipesFormContextProvider>
-          <Stepper activeStep={activeStep} alternativeLabel>
-            {steps.map((label) => (
-              <Step key={label}>
-                <StepLabel>{label}</StepLabel>
-              </Step>
-            ))}
-          </Stepper>
-          {activeStep === 0 && <RecipesForm setActiveStep={setActiveStep} />}
-        </RecipesFormContextProvider>
+        <Stepper activeStep={activeStep} alternativeLabel>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+        <form onSubmit={handleSubmit(onValidSubmit)}>
+          {activeStep === 0 && <div>
+            <label>
+              Nombre
+              <input
+                id="nombre"
+                {...register(`nombre`)}
+              />
+            </label>
+            <button type="button" onClick={checkFirstStep}>Next</button>
+          </div>
+          }
+          {activeStep === 1 && <div>
+            <label>
+              Dirección
+              <input
+                id="direccion"
+                {...register(`direccion`)}
+              />
+            </label>
+            <button type="button" onClick={goBacktoStepOne}>Prev</button>
+            <button type="button" onClick={checkSecondStep}>Next</button>
+          </div>}
+          {activeStep === 2 && <div>
+            <label>
+              Tarjeta
+              <input
+                id="tarjeta"
+                {...register(`tarjeta`)}
+              />
+              <Cards
+                cvc={''}
+                expiry={''}
+                name={''}
+                number={tarjetaState}
+              // focused={this.state.focus}
+              />
+            </label>
+            <button type="submit">Submit</button>
+          </div>}
+        </form>
       </Container>
     </>
   )
